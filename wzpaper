@@ -1,0 +1,195 @@
+#!/bin/bash
+
+# {CHECK INITIALIZATION} #
+
+function check_init () {
+    if [[ ! -e /usr/bin/feh ]]; then
+        echo "You must install 'feh' to use this program."
+        exit 84
+    elif [[ ! -e .links ]]; then
+        echo "Invalid links try 'wzpaper -i' for add a links"
+        exit 84
+    elif [[ -z $bgDir ]]; then
+        echo "Invalid links try 'wzpaper -i' for add a links"
+        exit 84
+    elif [[ ! -d $bgDir ]]; then
+        echo $bgDir
+        echo "Invalid links try 'wzpaper -i' for add a links"
+        exit 84
+    fi
+}
+
+# {ERROR MANAGEMENT} #
+
+function error_management() {
+    if [[ $2 -le 1 ]]; then
+      printf "Every how many hours ? : "
+      read time
+    elif [[ $2 -ge 3 ]]; then
+      echo "Invalid argument."
+      exit 84
+    else
+      time=$1
+    fi
+    echo "Every $time hour the wallpaper changes."
+}
+# {FONCTION FOR CHOICE WALLPAPER (-C)} #
+
+function choice () {
+    ls -1 $bgDir | awk '{print "\t"$0}'
+    while [ 1 ]; do
+        printf "What wallpaper did you want ? : "
+        read src
+        if [[ -e $bgDir/$src ]]; then
+            while [[ 1 ]]; do
+                printf "Do you want to display %s ? (y/N): " "$src"
+                read answer
+                if [[ $answer == "y" ]]; then
+                    feh $bgDir/$src &
+                    while [[ 1 ]]; do
+                        printf "You want this wallpaper ? (y/N): "
+                        read answer
+                        if [[ $answer == "y" ]]; then
+                            kill $! > /dev/null 2>&1
+                            feh --bg-scale $bgDir/$src
+                            exit 0
+                        elif [[ $answer == "N" ]]; then
+                            kill $! > /dev/null 2>&1
+                            break
+                        else
+                            echo "Invalid answer."
+                        fi
+                    done
+                    if [[ $answer == "N" ]]; then
+                        break
+                    fi
+                elif [[ $answer == "N" ]]; then
+                    while [[ 1 ]]; do
+                        printf "You want this wallpaper ? (y/N): "
+                        read answer
+                        if [[ $answer == "y" ]]; then
+                            feh --bg-scale $bgDir/$src
+                            exit 0
+                        elif [[ $answer == "N" ]]; then
+                            break
+                        else
+                            echo "Invalid answer."
+                        fi
+                    done
+                    if [[ $answer == "N" ]]; then
+                        break
+                    fi
+                else
+                    echo "Invalid answer."
+                fi
+            done
+        else
+            echo "Invalid file."
+        fi
+    done
+}
+# {FONCTION FOR CHANGE WALLPAPER EVERY TIME (-P)} #
+
+function get_next_bg() {
+    files=( "$bgDir"/* )
+    while [ 1 ]
+    do
+        background="${files[RANDOM % ${#files[@]}]}"
+        feh --bg-scale $background
+        sleep "$time"h
+    done
+}
+# {FONCTION TO INITIALIZED THE PROGRAM (-I)}
+
+function init () {
+    if [[ ! -e /usr/bin/wzpaper ]]; then
+        while [[ 1 ]]; do
+            printf "You want to add 'wzpaper' in your application ? (y/N): "
+            read answer
+            if [[ $answer == "y" ]]; then
+                sudo cp -f wzpaper /usr/bin/
+                break
+            elif [[ $answer == "N" ]]; then
+                break
+            else
+                echo "Invalid answer."
+            fi
+        done
+    fi
+    while [[ 1 ]]; do
+        printf "The link to your wallpaper folder : "
+        read links
+        if [[ ! -d $links ]]; then
+            printf  "%s is not a folder\n" "$links"
+        else
+            break
+        fi
+    done
+    if [[ -e .links ]]; then
+        rm -f ./.links
+        echo -e "$links" >> ./.links
+    else
+        echo -e "$links" >> ./.links
+    fi
+    if [[ $answer == "y" ]]; then
+        rm -f wzpaper
+    fi
+}
+
+# {FONCTION FOR PRINT THE INFO (-H)} #
+
+function info () {
+    printf "USAGE\n"
+    printf "\twzpaper [options]\n"
+    printf "DESCRIPTION\n"
+    printf "\t-h\tPrint the different information of this programme.\n"
+    printf "\t-i\tInitialize information to use the program (mandatory first time).\n"
+    printf "\t-r\tChanges your wallpaper randomly.\n"
+    printf "\t-p\t<time> Change your wallpaper randomly at any given <time> in hours.\n"
+    printf "\t-c\tChoise your wallpaper.\n"
+}
+# {START OF PROGRAME} #
+
+# {CAST THE LINKS} #
+
+if [[ -e .links ]]; then
+    while read lines || [[ -n "$lines" ]]; do
+        bgDir=($lines)
+    done < .links
+fi
+# {SWITCH CASE} #
+
+case $1 in
+      "-h")
+          info
+          ;;
+      "-i")
+          init
+          ;;
+      "-r")
+          check_init
+          files=( "$bgDir"/* )
+          bg="${files[RANDOM % ${#files[@]}]}"
+          echo $bg
+          feh --bg-scale $bg
+          ;;
+      "-p")
+          check_init
+          error_management $2 $#
+          get_next_bg &
+          ;;
+      "-c")
+          check_init
+          choice
+          ;;
+      *)
+          if [[ -z $1 ]]; then
+              echo "Invalide argument."
+          else
+              echo "wzpaper: unrecognized option '$1'"
+          fi
+          echo "Try 'wzpaper -h' for more information."
+          exit 84
+          ;;
+esac
+# {END OF PROGRAME} #
