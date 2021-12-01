@@ -29,22 +29,23 @@ DESCRIPTION
 	-c	Choise your wallpaper.
 ```
 
-# How to use the program background change ?
-The "-c" option allows you to program the change of the background according to the time you have given.
+# How to use the programmed background change?
+The "-c" option allows you to program the random change of the background according to the time you have given.
 
 for exemple I would like my background to change randomly every 15 minutes.
 I should do :
 ```
-$ wzpaper -c 0.25
+$ wzpaper -p 0.25
 ```
 Here 0.25 hour is equal to 15 minutes.
-You can check this with the following formula:
+You can check this with the following formula :
+
 hour * 60
 
 # How to autostart with i3 ?
 In your i3 config file add these lines :
 ```
-exec wzpaper -c 0.25
+exec wzpaper -p 0.25
 ```
 
 # To stop it
