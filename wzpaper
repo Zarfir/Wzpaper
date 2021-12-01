@@ -6,7 +6,7 @@ function check_init () {
     if [[ ! -e /usr/bin/feh ]]; then
         echo "You must install 'feh' to use this program."
         exit 84
-    elif [[ ! -e .links ]]; then
+    elif [[ ! -e ~/.links ]]; then
         echo "Invalid links try 'wzpaper -i' for add a links"
         exit 84
     elif [[ -z $bgDir ]]; then
@@ -125,14 +125,11 @@ function init () {
             break
         fi
     done
-    if [[ -e .links ]]; then
-        rm -f ./.links
-        echo -e "$links" >> ./.links
+    if [[ -e ~/.links ]]; then
+        rm -f ~/.links
+        echo -e "$links" >> ~/.links
     else
-        echo -e "$links" >> ./.links
-    fi
-    if [[ $answer == "y" ]]; then
-        rm -f wzpaper
+        echo -e "$links" >> ~/.links
     fi
 }
 
@@ -152,15 +149,15 @@ function info () {
 
 # {CAST THE LINKS} #
 
-if [[ -e .links ]]; then
+if [[ -e ~/.links ]]; then
     while read lines || [[ -n "$lines" ]]; do
         bgDir=($lines)
-    done < .links
+    done < ~/.links
 fi
 # {SWITCH CASE} #
 
 case $1 in
-      "-h")
+      "-h" | "--help")
           info
           ;;
       "-i")
@@ -181,7 +178,7 @@ case $1 in
       "-c")
           check_init
           choice
-          ;;
+          ;;  
       *)
           if [[ -z $1 ]]; then
               echo "Invalide argument."
